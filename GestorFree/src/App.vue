@@ -4,11 +4,14 @@ import { RouterLink, RouterView } from 'vue-router';
 
 <template>
   <div class="app-container">
-    <nav class="navbar">
-      <router-link to="" class="nav-link">Inicio</router-link>
-      <router-link to="" class="nav-link">Servicios</router-link>
-      <router-link to="" class="nav-link">Contacto</router-link>
-    </nav>
+    <aside class="sidebar">
+      <h2 class="menu-title">Menú</h2>
+      <nav class="menu">
+        <router-link to="/tu-trabajo" class="menu-item">Tu trabajo</router-link>
+        <router-link to="/proyectos" class="menu-item">Proyectos</router-link>
+        <router-link to="/equipos" class="menu-item">Equipos</router-link>
+      </nav>
+    </aside>
     <main class="content">
       <router-view></router-view>
     </main>
@@ -18,43 +21,56 @@ import { RouterLink, RouterView } from 'vue-router';
 <style scoped>
 .app-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   min-height: 100vh;
-  background: #eef5ff;
   font-family: 'Arial', sans-serif;
+  background: #f5f5f5;
 }
 
-.navbar {
+.sidebar {
+  width: 250px;
+  background: white;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.menu-title {
+  color: #333;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.menu {
   display: flex;
-  justify-content: center;
-  gap: 15px;
-  width: 100%;
-  background: #007bff;
-  padding: 10px 0;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  flex-direction: column;
 }
 
-.nav-link {
-  color: white;
+.menu-item {
+  color: #555;
   text-decoration: none;
   font-size: 16px;
-  font-weight: 500;
-  padding: 8px 12px;
-  transition: opacity 0.3s;
+  padding: 12px 15px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  transition: all 0.3s;
 }
 
-.nav-link:hover {
-  opacity: 0.7;
+.menu-item:hover {
+  background: #f0f0f0;
+  color: #007bff;
+}
+
+.menu-item.router-link-active {
+  background: #e6f0ff;
+  color: #007bff;
+  font-weight: 500;
 }
 
 .content {
-  width: 90%;
-  max-width: 800px;
-  margin-top: 20px;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  padding: 30px;
+  background: #f5f5f5;
 }
 </style>
