@@ -9,7 +9,7 @@ import { RouterLink, RouterView } from 'vue-router';
       <nav class="menu">
         <router-link to="/tu-trabajo" class="menu-item">Tu trabajo</router-link>
         <router-link to="/proyectos" class="menu-item">Proyectos</router-link>
-        <router-link to="/equipos" class="menu-item">Equipos</router-link>
+        <router-link to="/equipo" class="menu-item">Equipo</router-link>
       </nav>
     </aside>
     <main class="content">
