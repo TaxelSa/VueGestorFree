@@ -64,14 +64,14 @@ const logout = () => {
 
 <style scoped>
 .app-container {
-  display: flex;
+  display: block;
   min-height: 100vh;
   font-family: 'Arial', sans-serif;
   background: #f5f5f5;
 }
 
 .sidebar {
-  width: 225px;
+  width: 250px;
   background: white;
   padding: 20px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
