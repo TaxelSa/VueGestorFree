@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 
 interface Task {
   id_tarea: number;
@@ -36,9 +35,10 @@ const obtenerColorEstado = (estado: string | number) => {
 
 const obtenerTareas = async () => {
   try {
-    const response = await axios.get('http://localhost/VueGestorFree/GestorFree/php/tareas.php');
-    if (response.data.status === 'success') {
-      tareas.value = response.data.data.sort((a: Task, b: Task) => {
+    const response = await fetch('http://localhost/VueGestorFree/GestorFree/php/tareas.php');
+    const data = await response.json();
+    if (data.status === 'success') {
+      tareas.value = data.data.sort((a: Task, b: Task) => {
         return new Date(a.fecha_entrega).getTime() - new Date(b.fecha_entrega).getTime();
       });
       console.log('Tareas y sus prioridades:', tareas.value.map(t => ({

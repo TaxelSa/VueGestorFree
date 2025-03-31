@@ -1,7 +1,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import axios from 'axios';
 
 const nuevaTarea = ref({
   nombre_tarea: '',
@@ -20,9 +19,17 @@ const mostrarMensaje = ref(false);
 
 const crearTarea = async () => {
   try {
-    const response = await axios.post('http://localhost/VueGestorFree/GestorFree/php/crear_tarea.php', nuevaTarea.value);
+    const response = await fetch('http://localhost/VueGestorFree/GestorFree/php/crear_tarea.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(nuevaTarea.value)
+    });
     
-    if (response.data.status === 'success') {
+    const data = await response.json();
+    
+    if (data.status === 'success') {
       mensaje.value = '¡Tarea creada exitosamente!';
       // Limpiar el formulario
       nuevaTarea.value = {
@@ -39,7 +46,7 @@ const crearTarea = async () => {
       // Emitir evento para actualizar el Kanban
       emit('tareaCreada');
     } else {
-      mensaje.value = 'Error al crear la tarea: ' + response.data.message;
+      mensaje.value = 'Error al crear la tarea: ' + data.message;
     }
     
     mostrarMensaje.value = true;

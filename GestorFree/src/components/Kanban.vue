@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useDragAndDrop } from "@formkit/drag-and-drop/vue";
-import axios from 'axios';
 
 interface Task {
   id_tarea: number;
@@ -25,9 +24,10 @@ const doneItems = ref<Task[]>([]);
 const fetchTasks = async () => {
   try {
     console.log('Fetching tasks...');
-    const response = await axios.get('http://localhost/VueGestorFree/GestorFree/php/tareas.php');
-    console.log('Response:', response.data);
-    const tasks = response.data.data;
+    const response = await fetch('http://localhost/VueGestorFree/GestorFree/php/tareas.php');
+    const data = await response.json();
+    console.log('Response:', data);
+    const tasks = data.data;
     
     if (!tasks || tasks.length === 0) {
       console.log('No tasks found in response');
