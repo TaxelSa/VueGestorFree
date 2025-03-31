@@ -1,16 +1,58 @@
+<script setup>
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const nombre_completo = ref(""); // Para almacenar el nombre del usuario
+const logged_in = ref(false); // Para saber si el usuario está logueado
+
+// Verificar si hay sesión activa al montar el componente
+onMounted(async () => {
+  try {
+    const response = await fetch("http://localhost/VueGestorFree/Controllers/session.php"); // Ruta del script PHP
+    const data = await response.json();
+    
+    if (data.logged_in) {
+      logged_in.value = true;
+      nombre_completo.value = data.nombre_completo; // Guardamos el nombre del usuario
+    } else {
+      logged_in.value = false;
+      nombre_completo.value = "";
+    }
+  } catch (error) {
+    console.error("Error al verificar la sesión:", error);
+    logged_in.value = false;
+  }
+});
+
+const logout = () => {
+  // Eliminar los datos de sesión en el frontend
+  localStorage.removeItem("numero_control");
+  localStorage.removeItem("userName");
+  nombre_completo.value = ""; // Limpiar el nombre del usuario en Vue
+  logged_in.value = false; // Cambiar el estado a no logueado
+  router.push("/login"); // Redirigir al login
+};
+</script>
+
 <template>
   <div class="app-container">
     <aside class="sidebar">
       <h2 class="menu-title">Menú</h2>
+      
+      <!-- Mostrar el nombre del usuario si está logueado -->
+      <h3 v-if="logged_in">{{ nombre_completo }}</h3>
+      
+      <!-- Mensaje si no está logueado -->
+      <h3 v-else>Debe iniciar sesión para continuar</h3>
+      
       <nav class="menu">
         <router-link to="/inicio" class="menu-item">Tu trabajo</router-link>
         <router-link to="/proyectos" class="menu-item">Proyectos</router-link>
         <router-link to="/equipo" class="menu-item">Equipos</router-link>
         <div class="sesion">
-          <!-- Se agregó el evento click para llamar al método logout -->
-          <router-link @click="logout" class="menu-item">Cerrar Sesión</router-link>
+          <button @click="logout" class="menu-item">Cerrar Sesión</button>
         </div>
-
       </nav>
     </aside>
     <main class="content">
@@ -19,17 +61,6 @@
   </div>
 </template>
 
-<script>
-export default {
-  methods: {
-    // Método para cerrar sesión
-    logout() {
-      localStorage.removeItem("numero_control"); // Elimina el número de control del localStorage
-      this.$router.push("/login"); // Redirige a la página de login
-    }
-  }
-};
-</script>
 
 <style scoped>
 .app-container {
@@ -76,12 +107,12 @@ export default {
 
 .menu-item:hover {
   background: #f0f0f0;
-  color: #FF9B17;
+  color: #007bff;
 }
 
 .menu-item.router-link-active {
-  background: #ffbd669d;
-  color: #ee8a08;
+  background: #e6f0ff;
+  color: #007bff;
   font-weight: 500;
 }
 

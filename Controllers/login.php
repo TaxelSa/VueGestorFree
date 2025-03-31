@@ -1,4 +1,6 @@
 <?php
+session_start(); // Iniciar sesión
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST");
@@ -13,7 +15,7 @@ $input = json_decode(file_get_contents("php://input"), true); // Leer datos JSON
 if (empty($input["numero_control"]) || empty($input["password"])) {
     $response["message"] = "Completa los campos";
 } else {
-    $usuario = (int) $input["numero_control"]; // Aseguramos que sea un entero
+    $usuario = (int) $input["numero_control"];
     $clave = $input["password"];
 
     if (!$conexion) {
@@ -22,21 +24,18 @@ if (empty($input["numero_control"]) || empty($input["password"])) {
         exit;
     }
 
-    // Usamos sentencias preparadas para mayor seguridad
+    // Consulta con sentencias preparadas
     $stmt = $conexion->prepare("SELECT numero_control, nombre, apellido FROM Usuario WHERE numero_control = ? AND password = ?");
-    $stmt->bind_param("is", $usuario, $clave);  
+    $stmt->bind_param("is", $usuario, $clave);
     $stmt->execute();
     $result = $stmt->get_result();
-
-    if ($user = $result->fetch_object()) {
+    
+    if ($row = $result->fetch_assoc()) {
+        $_SESSION["numero_control"] = $row["numero_control"];
+        $_SESSION["nombre_completo"] = $row["nombre"] . " " . $row["apellido"];
         
-
-        if ($result === FALSE) {
-            $response["message"] = "Error al enviar los datos a sesion.php";
-        } else {
-            $response["success"] = true;
-            $response["message"] = "Inicio de sesión exitoso y datos enviados a sesion.php";
-        }
+        $response["success"] = true;
+        $response["message"] = "Inicio de sesión exitoso";
     } else {
         $response["message"] = "Número de control o contraseña incorrectos";
     }
@@ -45,4 +44,3 @@ if (empty($input["numero_control"]) || empty($input["password"])) {
 
 echo json_encode($response);
 ?>
-
