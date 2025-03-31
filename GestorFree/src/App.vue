@@ -1,5 +1,7 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
+
+
 </script>
 
 <template>
@@ -13,7 +15,7 @@ import { RouterLink, RouterView } from 'vue-router';
       </nav>
     </aside>
     <main class="content">
-      <router-view></router-view>
+      <router-view to="Inicio"></router-view>
     </main>
   </div>
 </template>
