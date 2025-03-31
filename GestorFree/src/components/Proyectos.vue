@@ -1,6 +1,5 @@
 <script setup>
 import { ref, defineAsyncComponent } from 'vue';
-import { Globe, Calendar, List, LayoutGrid, Settings } from 'lucide-vue-next';
 
 const tabs = [
   { name: 'Crea Tarea', component: defineAsyncComponent(() => import('./CreaTarea.vue')) },
