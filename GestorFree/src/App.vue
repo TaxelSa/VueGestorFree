@@ -12,6 +12,7 @@ import { RouterLink, RouterView } from 'vue-router';
         <router-link to="/inicio" class="menu-item">Tu trabajo</router-link>
         <router-link to="/proyectos" class="menu-item">Proyectos</router-link>
         <router-link to="/equipo" class="menu-item">Equipos</router-link>
+
       </nav>
     </aside>
     <main class="content">
@@ -63,12 +64,12 @@ import { RouterLink, RouterView } from 'vue-router';
 
 .menu-item:hover {
   background: #f0f0f0;
-  color: #007bff;
+  color: #FF9B17;
 }
 
 .menu-item.router-link-active {
-  background: #e6f0ff;
-  color: #007bff;
+  background: #ffbd669d;
+  color: #ee8a08;
   font-weight: 500;
 }
 
