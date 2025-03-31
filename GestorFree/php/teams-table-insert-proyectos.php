@@ -10,37 +10,41 @@ include("db.php");  // Conexión a la base de datos
 // Leer los datos JSON recibidos
 $data = json_decode(file_get_contents("php://input"));
 
-if (!$data || !isset($data->ID_Equipo, $data->Nombre_Equipo, $data->Descripcion, $data->ID_Gestor)) {
+if (!$data || !isset($data->id_proyecto, $data->nombre_proyecto, $data->descripcion, $data->fecha_entrega, $data->id_usuario, $data->id_estado, $data->id_materia, $data->id_equipo)) {
     echo json_encode(["error" => "Datos incompletos"]);
     exit();
 }
 
 // Limpiar datos
-$id_equipo = htmlspecialchars(strip_tags($data->ID_Equipo));
-$nombre_equipo = htmlspecialchars(strip_tags($data->Nombre_Equipo));
-$descripcion = htmlspecialchars(strip_tags($data->Descripcion));
-$id_gestor = htmlspecialchars(strip_tags($data->ID_Gestor));
+$id_proyecto = htmlspecialchars(strip_tags($data->id_proyecto));
+$nombre_proyecto = htmlspecialchars(strip_tags($data->nombre_proyecto));
+$descripcion = htmlspecialchars(strip_tags($data->descripcion));
+$fecha_entrega = htmlspecialchars(strip_tags($data->fecha_entrega));
+$id_usuario = htmlspecialchars(strip_tags($data->id_usuario));
+$id_estado = htmlspecialchars(strip_tags($data->id_estado));
+$id_materia = htmlspecialchars(strip_tags($data->id_materia));
+$id_equipo = htmlspecialchars(strip_tags($data->id_equipo));
 
 try {
-    // Verificar si ya existe el ID_Equipo
-    $checkSql = "SELECT COUNT(*) FROM Equipo WHERE ID_Equipo = ?";
+    // Verificar si ya existe el ID_proyecto
+    $checkSql = "SELECT COUNT(*) FROM proyecto WHERE id_proyecto = ?";
     $stmt = $pdo->prepare($checkSql);
-    $stmt->execute([$id_equipo]);
+    $stmt->execute([$id_proyecto]);
     $existe = $stmt->fetchColumn();
 
     if ($existe) {
-        echo json_encode(["error" => "El ID_Equipo ya existe"]);
+        echo json_encode(["error" => "El ID del proyecto ya existe"]);
         exit();
     }
 
-    // Insertar el equipo
-    $sql = "INSERT INTO Equipo (ID_Equipo, Nombre_Equipo, Descripcion, ID_Gestor) VALUES (?, ?, ?, ?)";
+    // Insertar el proyecto
+    $sql = "INSERT INTO proyecto (id_proyecto, nombre_proyecto, descripcion, fecha_entrega, id_usuario, id_estado, id_materia, id_equipo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$id_equipo, $nombre_equipo, $descripcion, $id_gestor]);
+    $stmt->execute([$id_proyecto, $nombre_proyecto, $descripcion, $fecha_entrega, $id_usuario, $id_estado, $id_materia, $id_equipo]);
 
-    echo json_encode(["mensaje" => "✅ Equipo agregado correctamente"]);
+    echo json_encode(["mensaje" => "✅ Proyecto agregado correctamente"]);
 
 } catch (PDOException $e) {
-    echo json_encode(["error" => "Error al insertar el equipo: " . $e->getMessage()]);
+    echo json_encode(["error" => "Error al insertar el proyecto: " . $e->getMessage()]);
 }
 ?>

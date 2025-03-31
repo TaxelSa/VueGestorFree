@@ -71,7 +71,7 @@ const logout = () => {
 }
 
 .sidebar {
-  width: 250px;
+  width: 225px;
   background: white;
   padding: 20px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);

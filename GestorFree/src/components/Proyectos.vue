@@ -15,7 +15,7 @@ const tabs = [
     component: defineAsyncComponent(() => import('./Cronograma.vue'))
   }
 ];
-
+ 
 const activeTab = ref(tabs[0]);
 </script>
 

@@ -32,14 +32,14 @@ const obtenerProyectos = async () => {
 // Insertar proyecto
 const crearProyecto = async () => {
   const proyecto = {
-    id_proyecto: id_proyecto.value,
-    nombre_proyecto: nombre_proyecto.value,
+    id_proyecto: idProyecto.value,
+    nombre_proyecto: nombreProyecto.value,
     descripcion: descripcion.value,
-    fecha_entrega: fecha_entrega.value,
-    id_usuario: id_usuario.value,
-    id_estado: id_estado.value,
-    id_materia: id_materia.value,
-    id_equipo: id_equipo.value
+    fecha_entrega: fechaEntrega.value,
+    id_usuario: idUsuario.value,
+    id_estado: idEstado.value,
+    id_materia: idMateria.value,
+    id_equipo: idEquipo.value
   };
 
   try {
@@ -50,14 +50,26 @@ const crearProyecto = async () => {
     });
 
     if (respuesta.ok) {
-      mensaje.value = "✅ Proyecto creado exitosamente.";
+      const resultado = await respuesta.json();
+      mensaje.value = resultado.mensaje || "✅ Proyecto creado exitosamente.";
       mensajeTipo.value = "success";
+      // Limpiar el formulario
+      idProyecto.value = "";
+      nombreProyecto.value = "";
+      descripcion.value = "";
+      fechaEntrega.value = "";
+      idUsuario.value = "";
+      idEstado.value = "";
+      idMateria.value = "";
+      idEquipo.value = "";
       obtenerProyectos();
     } else {
-      mensaje.value = "❌ Error al crear el proyecto.";
+      const errorData = await respuesta.json();
+      mensaje.value = errorData.error || "❌ Error al crear el proyecto.";
       mensajeTipo.value = "error";
     }
   } catch (error) {
+    console.error("Error al crear proyecto:", error);
     mensaje.value = "❌ Error de conexión con el servidor.";
     mensajeTipo.value = "error";
   }
