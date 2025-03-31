@@ -10,6 +10,7 @@
           <!-- Se agregó el evento click para llamar al método logout -->
           <router-link @click="logout" class="menu-item">Cerrar Sesión</router-link>
         </div>
+
       </nav>
     </aside>
     <main class="content">
@@ -75,12 +76,12 @@ export default {
 
 .menu-item:hover {
   background: #f0f0f0;
-  color: #007bff;
+  color: #FF9B17;
 }
 
 .menu-item.router-link-active {
-  background: #e6f0ff;
-  color: #007bff;
+  background: #ffbd669d;
+  color: #ee8a08;
   font-weight: 500;
 }
 

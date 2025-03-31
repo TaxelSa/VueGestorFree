@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Proyectos from '../components/proyectos.vue';
+/*import Kanban from '../components/Kanban.vue';*/
 import Equipo from '../components/Equipo.vue';
 import Inicio from '../components/inicio.vue';
 import Login from '../components/login.vue';
@@ -8,8 +8,11 @@ const routes = [
   { path: '/', redirect: '/login' },  // Redirige la página principal al login
   { path: '/login', component: Login },
   { path: '/inicio', component: Inicio, meta: { requiresAuth: true } },
-  { path: '/proyectos', component: Proyectos, meta: { requiresAuth: true } },
-  { path: '/equipo', component: Equipo, meta: { requiresAuth: true } }
+  /*{ path: '/proyectos', component: Proyectos, meta: { requiresAuth: true } },*/
+  { path: '/equipo', component: Equipo, meta: { requiresAuth: true } },
+  /*{ path: '/kanban', component: Kanban }, */
+  { path: '/equipo', component: Equipo },
+  
 ];
 
 const router = createRouter({

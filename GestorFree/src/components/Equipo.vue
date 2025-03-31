@@ -2,76 +2,64 @@
 import { ref, onMounted } from "vue";
 
 const equipos = ref([]);
-const integrantes = ref([]);
 const mensaje = ref("");
-const mensajeTipo = ref("");
+const mensajeTipo = ref(""); // Agregado para manejar el tipo de mensaje (success o error)
+const codigoEquipo = ref("");
+const nombreEquipo = ref("");
+const descripcion = ref("");
+const numeroControl = ref("");
 
+// Obtener equipos
 const obtenerEquipos = async () => {
   try {
-    const respuesta = await fetch("http://localhost/GestorFree/app/controllers/teams-table.php");
-    const data = await respuesta.json();
-    equipos.value = data;
+    const respuesta = await fetch("http://localhost/vueGestorFree/GestorFree/php/teams-table.php");
+    if (!respuesta.ok) throw new Error("Error al obtener equipos.");
+
+    const datos = await respuesta.json();
+    equipos.value = Array.isArray(datos) ? datos : [];
   } catch (error) {
-    console.error("Error al obtener equipos:", error);
-    mensaje.value = "Error al cargar los equipos.";
-    mensajeTipo.value = "error";
+    mensaje.value = "❌ Error al obtener los equipos.";
   }
 };
 
-const obtenerIntegrantes = async (codigoEquipo) => {
-  try {
-    const respuesta = await fetch(`http://localhost/GestorFree/app/controllers/teams-integrantes.php?codigo=${codigoEquipo}`);
-    const data = await respuesta.json();
-    integrantes.value = data;
-  } catch (error) {
-    console.error("Error al obtener integrantes:", error);
-    mensaje.value = "Error al cargar los integrantes.";
-    mensajeTipo.value = "error";
-  }
-};
-
+// Insertar equipo
 const crearEquipo = async (equipo) => {
+  console.log("Equipo a insertar:", equipo); // Para verificar el objeto que se está enviando
   try {
-    const respuesta = await fetch("http://localhost/GestorFree/app/controllers/teams-table-insert.php", {
+    const respuesta = await fetch("http://localhost/vueGestorFree/GestorFree/php/teams-table-insert.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(equipo),
     });
 
     if (respuesta.ok) {
-      mensaje.value = "Equipo creado exitosamente.";
+      const resultado = await respuesta.json();
+      console.log("Respuesta del servidor:", resultado); // Ver la respuesta del servidor
+      mensaje.value = resultado.mensaje || "Equipo creado exitosamente.";
       mensajeTipo.value = "success";
-      obtenerEquipos();
+      obtenerEquipos();  // Recargar la lista después de crear
     } else {
-      mensaje.value = "Error al crear equipo.";
+      const errorData = await respuesta.json();
+      console.error("Error en la creación del equipo:", errorData); // Ver el error si existe
+      mensaje.value = errorData.error || "Error al crear equipo.";
       mensajeTipo.value = "error";
     }
   } catch (error) {
     console.error("Error al crear equipo:", error);
+    mensaje.value = "❌ Error de conexión con el servidor.";
+    mensajeTipo.value = "error";
   }
 };
 
-const unirseEquipo = async (codigo, numeroControl) => {
-  try {
-    const respuesta = await fetch("http://localhost/GestorFree/app/controllers/teams-table-unirseT.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codigo_equipo: codigo, numero_control: numeroControl }),
-    });
-
-    if (respuesta.ok) {
-      mensaje.value = "Te has unido al equipo exitosamente.";
-      mensajeTipo.value = "success";
-      obtenerEquipos();
-    } else {
-      mensaje.value = "Error al unirse al equipo.";
-      mensajeTipo.value = "error";
-    }
-  } catch (error) {
-    console.error("Error al unirse al equipo:", error);
-  }
+// Limpiar formulario
+const limpiarFormulario = () => {
+  codigoEquipo.value = "";
+  nombreEquipo.value = "";
+  descripcion.value = "";
+  numeroControl.value = "";
 };
 
+// Ejecutar al montar el componente
 onMounted(() => {
   obtenerEquipos();
 });
@@ -79,41 +67,35 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <header>
-      <h1>Gestión de Equipos</h1>
-      <button @click="obtenerEquipos">🔄 Actualizar</button>
-    </header>
+    <h1>Gestión de Equipos</h1>
 
-    <div v-if="mensaje" :class="['message', mensajeTipo]">
-      {{ mensaje }}
-    </div>
-
-    <!-- Formulario para crear equipo -->
+    <!-- Formulario para insertar equipo -->
     <div class="formulario">
-      <h2>Crear un Equipo</h2>
-      <form @submit.prevent="crearEquipo({
-        codigo_equipo: $event.target.codigo_equipo.value,
-        nombre_equipo: $event.target.nombre_equipo.value,
-        descripcion: $event.target.descripcion.value,
-        numero_control: $event.target.numero_control.value
-      })">
-        <input type="text" name="codigo_equipo" placeholder="Código del equipo" required />
-        <input type="text" name="nombre_equipo" placeholder="Nombre del equipo" required />
-        <input type="text" name="descripcion" placeholder="Descripción" required />
-        <input type="text" name="numero_control" placeholder="Número de control" required />
-        <button type="submit">Crear</button>
-      </form>
+      <h2>Crear Nuevo Equipo</h2>
+      <input v-model="codigoEquipo" placeholder="Código del equipo" />
+      <input v-model="nombreEquipo" placeholder="Nombre del equipo" />
+      <input v-model="descripcion" placeholder="Descripción" />
+      <input v-model="numeroControl" placeholder="Número de control (líder)" />
+      <button @click="crearEquipo({
+        codigo_equipo: codigoEquipo,
+        nombre_equipo: nombreEquipo,
+        descripcion: descripcion,
+        numero_control: numeroControl
+      })">Agregar Equipo</button>
     </div>
 
-    <!-- Tabla de equipos -->
-    <table class="teams-table">
+    <!-- Mensaje de éxito o error -->
+    <p v-if="mensaje" :class="mensajeTipo" class="mensaje">{{ mensaje }}</p>
+
+    <!-- Tabla para mostrar equipos -->
+    <h2>Equipos Registrados</h2>
+    <table v-if="equipos.length > 0" class="teams-table">
       <thead>
         <tr>
           <th>Código</th>
           <th>Nombre</th>
           <th>Descripción</th>
           <th>Líder</th>
-          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -122,112 +104,81 @@ onMounted(() => {
           <td>{{ equipo.nombre_equipo }}</td>
           <td>{{ equipo.descripcion }}</td>
           <td>{{ equipo.numero_control }}</td>
-          <td>
-            <button @click="obtenerIntegrantes(equipo.codigo_equipo)">👥 Ver Integrantes</button>
-            <button @click="unirseEquipo(equipo.codigo_equipo, '123456')">➕ Unirse</button>
-          </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Modal de integrantes -->
-    <div v-if="integrantes.length > 0" class="modal">
-      <div class="modal-content">
-        <h2>Integrantes del equipo</h2>
-        <ul>
-          <li v-for="integrante in integrantes" :key="integrante.numero_control">
-            {{ integrante.nombre }} {{ integrante.apellido }} ({{ integrante.numero_control }})
-          </li>
-        </ul>
-        <button @click="integrantes = []">Cerrar</button>
-      </div>
-    </div>
+    <p v-else>No hay equipos registrados.</p>
   </div>
 </template>
 
 <style scoped>
 .container {
-  padding: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px;
   font-family: Arial, sans-serif;
 }
 
-header {
+h1, h2 {
+  text-align: center;
+  color: #333;
+}
+
+.formulario {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
 }
 
-.message {
+input, button {
   padding: 10px;
-  margin: 10px 0;
+  border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+button {
+  background: #007bff;
   color: white;
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
-.success {
-  background-color: #28a745;
+button:hover {
+  background: #0056b3;
 }
 
-.error {
-  background-color: #dc3545;
+.mensaje {
+  color: green;
+  font-weight: bold;
+  text-align: center;
+}
+
+.mensaje.error {
+  color: red;
 }
 
 .teams-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .teams-table th, .teams-table td {
-  padding: 10px;
-  border: 1px solid #ccc;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
 .teams-table th {
-  background-color: #f4f4f4;
-}
-
-button {
-  padding: 8px 16px;
-  margin: 5px;
-  border: none;
-  cursor: pointer;
+  background: #007bff;
   color: white;
-  background-color: #007bff;
-  transition: 0.3s;
 }
 
-button:hover {
-  background-color: #0056b3;
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-input, button {
-  padding: 10px;
-  font-size: 14px;
+.teams-table tr:hover {
+  background: #f1f1f1;
 }
 </style>
