@@ -178,7 +178,7 @@ textarea {
 }
 
 .btn-crear {
-  background: #0052cc;
+  background: #ffea4a;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -189,7 +189,7 @@ textarea {
 }
 
 .btn-crear:hover {
-  background: #0047b3;
+  background: #e9d431;
 }
 
 .mensaje {
