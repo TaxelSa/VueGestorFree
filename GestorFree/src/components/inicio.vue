@@ -15,6 +15,9 @@ const idEstado = ref("");
 const idMateria = ref("");
 const idEquipo = ref("");
 
+// Bandera para saber si se está actualizando un proyecto
+const editando = ref(false);
+
 // Obtener proyectos
 const obtenerProyectos = async () => {
   try {
@@ -29,8 +32,8 @@ const obtenerProyectos = async () => {
   }
 };
 
-// Insertar proyecto
-const crearProyecto = async () => {
+// Insertar o actualizar proyecto
+const guardarProyecto = async () => {
   const proyecto = {
     id_proyecto: idProyecto.value,
     nombre_proyecto: nombreProyecto.value,
@@ -39,40 +42,92 @@ const crearProyecto = async () => {
     id_usuario: idUsuario.value,
     id_estado: idEstado.value,
     id_materia: idMateria.value,
-    id_equipo: idEquipo.value
+    id_equipo: idEquipo.value,
   };
 
+  const url = editando.value
+    ? "http://localhost/vueGestorFree/GestorFree/php/teams-table-update-proyecto.php"
+    : "http://localhost/vueGestorFree/GestorFree/php/teams-table-insert-proyectos.php";
+
+  const metodo = editando.value ? "PUT" : "POST";
+
   try {
-    const respuesta = await fetch("http://localhost/vueGestorFree/GestorFree/php/teams-table-insert-proyectos.php", {
-      method: "POST",
+    const respuesta = await fetch(url, {
+      method: metodo,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(proyecto),
     });
 
     if (respuesta.ok) {
       const resultado = await respuesta.json();
-      mensaje.value = resultado.mensaje || "✅ Proyecto creado exitosamente.";
+      mensaje.value = resultado.mensaje || (editando.value ? "✅ Proyecto actualizado." : "✅ Proyecto creado.");
       mensajeTipo.value = "success";
-      // Limpiar el formulario
-      idProyecto.value = "";
-      nombreProyecto.value = "";
-      descripcion.value = "";
-      fechaEntrega.value = "";
-      idUsuario.value = "";
-      idEstado.value = "";
-      idMateria.value = "";
-      idEquipo.value = "";
+      limpiarFormulario();
       obtenerProyectos();
     } else {
       const errorData = await respuesta.json();
-      mensaje.value = errorData.error || "❌ Error al crear el proyecto.";
+      mensaje.value = errorData.error || "❌ Error al procesar la solicitud.";
       mensajeTipo.value = "error";
     }
   } catch (error) {
-    console.error("Error al crear proyecto:", error);
+    console.error("Error en la solicitud:", error);
     mensaje.value = "❌ Error de conexión con el servidor.";
     mensajeTipo.value = "error";
   }
+};
+
+// Eliminar proyecto
+const eliminarProyecto = async (id) => {
+  if (!confirm("¿Estás seguro de eliminar este proyecto?")) return;
+
+  try {
+    const respuesta = await fetch("http://localhost/vueGestorFree/GestorFree/php/teams-table-delete-proyecto.php", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_proyecto: id }),
+    });
+
+    if (respuesta.ok) {
+      const resultado = await respuesta.json();
+      mensaje.value = resultado.mensaje || "✅ Proyecto eliminado.";
+      mensajeTipo.value = "success";
+      obtenerProyectos();
+    } else {
+      const errorData = await respuesta.json();
+      mensaje.value = errorData.error || "❌ Error al eliminar.";
+      mensajeTipo.value = "error";
+    }
+  } catch (error) {
+    console.error("Error al eliminar:", error);
+    mensaje.value = "❌ Error de conexión con el servidor.";
+    mensajeTipo.value = "error";
+  }
+};
+
+// Cargar datos en el formulario para editar
+const editarProyecto = (proyecto) => {
+  idProyecto.value = proyecto.id_proyecto;
+  nombreProyecto.value = proyecto.nombre_proyecto;
+  descripcion.value = proyecto.descripcion;
+  fechaEntrega.value = proyecto.fecha_entrega;
+  idUsuario.value = proyecto.id_usuario;
+  idEstado.value = proyecto.id_estado;
+  idMateria.value = proyecto.id_materia;
+  idEquipo.value = proyecto.id_equipo;
+  editando.value = true;
+};
+
+// Limpiar formulario
+const limpiarFormulario = () => {
+  idProyecto.value = "";
+  nombreProyecto.value = "";
+  descripcion.value = "";
+  fechaEntrega.value = "";
+  idUsuario.value = "";
+  idEstado.value = "";
+  idMateria.value = "";
+  idEquipo.value = "";
+  editando.value = false;
 };
 
 onMounted(() => {
@@ -85,8 +140,8 @@ onMounted(() => {
     <h1>Gestión de Proyectos</h1>
     
     <div class="formulario">
-      <h2>Crear Nuevo Proyecto</h2>
-      <input v-model="idProyecto" placeholder="ID del Proyecto" required />
+      <h2>{{ editando ? "Editar Proyecto" : "Crear Nuevo Proyecto" }}</h2>
+      <input v-model="idProyecto" placeholder="ID del Proyecto" required :disabled="editando" />
       <input v-model="nombreProyecto" placeholder="Nombre del Proyecto" required />
       <input v-model="descripcion" placeholder="Descripción" required />
       <input v-model="fechaEntrega" type="date" required />
@@ -94,7 +149,8 @@ onMounted(() => {
       <input v-model="idEstado" placeholder="ID Estado" required />
       <input v-model="idMateria" placeholder="ID Materia" required />
       <input v-model="idEquipo" placeholder="ID Equipo" required />
-      <button @click="crearProyecto">Agregar Proyecto</button>
+      <button @click="guardarProyecto">{{ editando ? "Actualizar Proyecto" : "Agregar Proyecto" }}</button>
+      <button v-if="editando" @click="limpiarFormulario" class="cancel">Cancelar</button>
     </div>
 
     <p v-if="mensaje" :class="mensajeTipo" class="mensaje">{{ mensaje }}</p>
@@ -109,6 +165,7 @@ onMounted(() => {
           <th>Fecha de entrega</th>
           <th>Estado</th>
           <th>Estudiante Propietario</th>
+          <th>Operaciones</th>
         </tr>
       </thead>
       <tbody>
@@ -119,6 +176,10 @@ onMounted(() => {
           <td>{{ proyecto.fecha_entrega }}</td>
           <td>{{ proyecto.id_estado }}</td>
           <td>{{ proyecto.id_usuario }}</td>
+          <td>
+            <button @click="editarProyecto(proyecto)" class="edit">Modificar</button>
+            <button @click="eliminarProyecto(proyecto.id_proyecto)" class="delete">Eliminar</button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -127,6 +188,27 @@ onMounted(() => {
 </template>
 
 <style scoped>
+button {
+  margin-right: 5px;
+}
+
+button.edit {
+  background: #ffc107;
+  color: black;
+}
+
+button.delete {
+  background: #dc3545;
+}
+
+button.cancel {
+  background: #6c757d;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
 .container {
   max-width: 1100px;
   margin: 0 auto;
