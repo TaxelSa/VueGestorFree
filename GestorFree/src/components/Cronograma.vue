@@ -12,6 +12,7 @@ interface Task {
 }
 
 const tareas = ref<Task[]>([]);
+const tareaSeleccionada = ref<Task | null>(null);
 
 const obtenerColorPrioridad = (prioridad: string | number) => {
   const p = Number(prioridad);
@@ -49,6 +50,71 @@ const obtenerTareas = async () => {
     }
   } catch (error) {
     console.error('Error al cargar las tareas:', error);
+  }
+};
+
+const eliminarTarea = async (id_tarea: number) => {
+  console.log(`Intentando eliminar la tarea con ID: ${id_tarea}`);
+  try {
+    const response = await fetch('http://localhost/VueGestorFree/GestorFree/php/eliminar_tarea.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_tarea })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error del servidor:', errorData.message);
+      return;
+    }
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      tareas.value = tareas.value.filter(tarea => tarea.id_tarea !== id_tarea);
+      console.log('Tarea eliminada exitosamente');
+    } else {
+      console.error('Error al eliminar la tarea:', result.message);
+    }
+  } catch (error) {
+    console.error('Error al conectar con el servidor:', error);
+  }
+};
+
+const abrirFormularioModificar = (tarea: Task) => {
+  tareaSeleccionada.value = { ...tarea };
+};
+
+const cerrarFormularioModificar = () => {
+  tareaSeleccionada.value = null;
+};
+
+const modificarTarea = async () => {
+  if (!tareaSeleccionada.value) return;
+
+  console.log('Datos enviados al backend:', tareaSeleccionada.value);
+
+  try {
+    const response = await fetch('http://localhost/VueGestorFree/GestorFree/php/modificar_tarea.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tareaSeleccionada.value)
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      const index = tareas.value.findIndex(t => t.id_tarea === tareaSeleccionada.value?.id_tarea);
+      if (index !== -1) {
+        tareas.value[index] = { ...tareaSeleccionada.value };
+      }
+      cerrarFormularioModificar();
+      console.log('Tarea modificada exitosamente');
+    } else {
+      console.error('Error al modificar la tarea:', result.message);
+    }
+  } catch (error) {
+    console.error('Error al conectar con el servidor:', error);
   }
 };
 
@@ -94,12 +160,56 @@ onMounted(() => {
                 :class="obtenerColorPrioridad(tarea.prioridad)">
             Prioridad {{ tarea.prioridad }}
           </span>
+          <button @click="eliminarTarea(tarea.id_tarea)" 
+                  class="ml-auto px-3 py-1 text-xs text-white bg-red-500 rounded hover:bg-red-600">
+            Eliminar
+          </button>
+          <!-- Botón para modificar -->
+          <button @click="abrirFormularioModificar(tarea)" 
+                  class="px-3 py-1 text-xs text-white bg-blue-500 rounded hover:bg-blue-600">
+            Modificar
+          </button>
         </div>
       </div>
       
       <div v-if="tareas.length === 0" class="text-center text-gray-500 py-8">
         No hay tareas programadas
       </div>
+    </div>
+
+    <!-- Formulario para modificar tarea -->
+    <div v-if="tareaSeleccionada" class="formulario-modificar bg-white p-4 rounded shadow-md">
+      <h3 class="text-lg font-bold mb-4">Modificar Tarea</h3>
+      <form @submit.prevent="modificarTarea">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">Nombre</label>
+          <input v-model="tareaSeleccionada.nombre_tarea" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">Descripción</label>
+          <textarea v-model="tareaSeleccionada.descripcion" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">Fecha de Entrega</label>
+          <input v-model="tareaSeleccionada.fecha_entrega" type="date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">Hora de Entrega</label>
+          <input v-model="tareaSeleccionada.hora_entrega" type="time" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">Prioridad</label>
+          <input v-model="tareaSeleccionada.prioridad" type="number" min="1" max="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">Estado</label>
+          <input v-model="tareaSeleccionada.id_estado" type="number" min="1" max="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="px-4 py-2 text-white bg-green-500 rounded hover:bg-green-600">Guardar</button>
+          <button @click="cerrarFormularioModificar" type="button" class="ml-2 px-4 py-2 text-white bg-gray-500 rounded hover:bg-gray-600">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
 </template>
